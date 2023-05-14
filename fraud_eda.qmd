@@ -1,0 +1,52 @@
+---
+title: "Fraudulent Transactions Prediction"
+subtitle: "Solution Engineering - R"
+author: "Felix Erlacher, ..."
+always_allow_html: yes
+embed-resources: true
+date: today
+date-format: long
+format:
+  revealjs: 
+    theme: simple
+bibliography: "MA.bib"
+csl: "ieee.csl"
+---
+
+
+```{r load_libraries, message=FALSE, warning=FALSE}
+rm(list=ls())
+
+library(tidyverse)
+library(DataExplorer)
+library(patchwork)
+
+#create cluster for do parallel
+library(doParallel)
+cl <- makeCluster(4)
+registerDoParallel(cl)
+```
+
+#  Einleitung
+
+
+```{r}
+#read csv data/Fraud.csv into tibble with readr::read_csv for better performance & tidyverse support
+#fraud <- readr::read_csv ("data/Fraud.csv")
+#fraud
+
+#load iris
+fraud <- iris
+```
+
+#  Data Exploration
+```{r}
+plot_intro(fraud)
+#create_report(fraud)
+```
+
+
+```{r}
+#stop cluster
+stopCluster(cl)
+```
