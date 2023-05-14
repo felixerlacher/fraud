@@ -10,7 +10,7 @@ format:
     theme: dark
     smaller: true
     scrollable: true
-    center: true
+    center: false
     cache: true
 ---
 # Einleitung
@@ -30,7 +30,7 @@ registerDoParallel(cl)
 ## Zielsetzung des Projekts
 - Ziel des Projekts ist es, ein Modell zu entwickeln, welches die Wahrscheinlichkeit einer betrügerischen Transaktion vorhersagt.<br>
 
-- Die Daten stammen von Kaggle und beinhalten 6362620 Transaktionen, die in 30 Tagen simuliert wurden. ^[‘Fraudulent Transactions Prediction’. https://www.kaggle.com/datasets/vardhansiramdasu/fraudulent-transactions-prediction (accessed May 14, 2023)] <br><br><br><br>
+- Die Daten stammen von Kaggle und beinhalten 6362620 Transaktionen, die in 30 Tagen simuliert wurden. ^[‘Fraudulent Transactions Prediction’. https://www.kaggle.com/datasets/vardhansiramdasu/fraudulent-transactions-prediction (accessed May 14, 2023)] 
 
 
 ## qualitative Ziele
@@ -67,6 +67,11 @@ registerDoParallel(cl)
 - isFraud - This is the transactions made by the fraudulent agents inside the simulation. In this specific dataset the fraudulent behavior of the agents aims to profit by taking control or customers accounts and try to empty the funds by transferring to another account and then cashing out of the system.
 
 - isFlaggedFraud - The business model aims to control massive transfers from one account to another and flags illegal attempts. An illegal attempt in this dataset is an attempt to transfer more than 200.000 in a single transaction.
+
+::: aside
+‘Fraudulent Transactions Prediction’. https://www.kaggle.com/datasets/vardhansiramdasu/fraudulent-transactions-prediction (accessed May 14, 2023)
+:::
+
 
 
 ## Explorative Datenanalyse
