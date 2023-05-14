@@ -104,6 +104,7 @@ plot_bar(fraud, by = "type")
 ```{r}
 #| echo: true
 fraud %>% count(isFlaggedFraud, isFraud) %>% kable()
+fraud %>% filter(isFlaggedFraud == 1 & isFraud == 0) %>% count()  %>% kable()
 ```
 
 ## Korrelation
