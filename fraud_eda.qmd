@@ -10,8 +10,10 @@ format:
     theme: simple
     smaller: true
     scrollable: true
+    center: true
+    cache: true
 ---
-#  Einleitung
+# Einleitung
 ```{r load_libraries, message=FALSE, warning=FALSE}
 rm(list=ls())
 
@@ -25,7 +27,25 @@ library(doParallel)
 cl <- makeCluster(4)
 registerDoParallel(cl)
 ```
-## Features ^[‘Fraudulent Transactions Prediction’. https://www.kaggle.com/datasets/vardhansiramdasu/fraudulent-transactions-prediction (accessed May 14, 2023).]
+## Zielsetzung des Projekts
+- Ziel des Projekts ist es, ein Modell zu entwickeln, welches die Wahrscheinlichkeit einer betrügerischen Transaktion vorhersagt.<br>
+
+- Die Daten stammen von Kaggle und beinhalten 6362620 Transaktionen, die in 30 Tagen simuliert wurden. ^[‘Fraudulent Transactions Prediction’. https://www.kaggle.com/datasets/vardhansiramdasu/fraudulent-transactions-prediction (accessed May 14, 2023)] <br><br><br><br>
+
+
+## qualitative Ziele
+
+  - Verbesserung der Effektivität der Betrugsprävention und -erkennung
+  - Steigerung der Kundenzufriedenheit und des Vertrauens in die Bank
+  - Verbesserung des Rufs der Bank durch proaktive Betrugsprävention
+  - Vermeidung von finanziellen Verlusten für Kunden und die Bank durch Betrug
+
+## quantitative Ziele
+
+# Datengrundlage
+
+## Features
+
 - step - maps a unit of time in the real world. In this case 1 step is 1 hour of time. Total steps 744 (30 days simulation).
 
 - type - CASH-IN, CASH-OUT, DEBIT, PAYMENT and TRANSFER.
@@ -49,8 +69,8 @@ registerDoParallel(cl)
 - isFlaggedFraud - The business model aims to control massive transfers from one account to another and flags illegal attempts. An illegal attempt in this dataset is an attempt to transfer more than 200.000 in a single transaction.
 
 
-# Explorative Datenanalyse
-## Daten einlesen
+## Explorative Datenanalyse
+
 ```{r}
 #| echo: true
 #read csv data/Fraud.csv into tibble with readr::read_csv for better performance & tidyverse support
@@ -59,7 +79,6 @@ fraud %>% glimpse()
 introduce(fraud) %>% t()
 ```
 
-#  Data Exploration
 ## Überblick
 ```{r}
 plot_intro(fraud)
@@ -86,6 +105,75 @@ fraud %>% count(isFlaggedFraud, isFraud) %>% kable()
 ```{r}
 plot_correlation(fraud)
 ```
+
+# Projektorganisation
+
+## Aufgabenteilung
+
+- Projektleiter:
+  Koordination des Projektablaufs
+  Verantwortung für das Erreichen der Projektziele
+  Kommunikation mit dem Dozenten
+
+- Projektmitglied 1:
+  Datenaufbereitung und -bereinigung
+  Durchführung von explorativen Datenanalysen
+  Feature Engineering
+
+- Projektmitglied 2:
+    Entwicklung und Training des Modells
+    Evaluation des Modells und Analyse der Performance
+    Optimierung des Modells
+
+- Projektmitglied 3:
+    Dokumentation der Arbeitsschritte und Ergebnisse
+    Erstellung der Abschlusspräsentation
+    Beantwortung von Fragen des Dozenten
+
+# Plan für die Ausarbeitung des Projekts (Workflow), Backlog
+
+## Backlog
+:::: {.columns}
+
+::: {.column width="50%"}
+<strong>Aufgabe</strong><br>
+Datenaufbereitung und -bereinigung<br>
+Explorative Datenanalyse <br>
+Feature Engineering<br>
+Modellentwicklung und Training<br>
+Modellbewertung und Performance-Analyse<br>
+Modelloptimierung<br>
+Dokumentation der Arbeitsschritte und Ergebnisse<br>
+Erstellung der Abschlusspräsentation
+:::
+
+::: {.column width="30%"}
+<strong>Verantwortlicher</strong><br>
+[Name 1]<br>
+[Name 1]<br>
+[Name 1]<br>
+[Name 1]<br>
+[Name 1]<br>
+[Name 1]<br>
+[Name 1]<br>
+[Name 1]
+:::
+
+::: {.column width="20%"}
+<strong>Fälligkeitsdatum</strong><br>
+16.05.2023<br>
+16.05.2023<br>
+16.05.2023<br>
+16.05.2023<br>
+16.05.2023<br>
+16.05.2023<br>
+16.05.2023<br>
+16.05.2023
+:::
+
+::::
+
+# Beantwortung von Fragen
 
 ```{r}
 #stop cluster
