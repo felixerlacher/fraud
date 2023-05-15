@@ -40,12 +40,12 @@ Um unsere Hauptziel zu erreichen, sind folgende qualitative Ziele notwendig:
   - Verbesserung der Effektivität der Betrugsprävention und -erkennung
   - Steigerung der Kundenzufriedenheit und des Vertrauens in die Bank
   - Verbesserung des Rufs der Bank durch proaktive Betrugsprävention
-
+  - Minimiurung von finanziellen Schaden und Verluste für Kunden und die Bank 
+  
 ## quantitative Ziele
 
 Um unsere Hauptziel zu erreichen, sind folgende quantitative Ziele notwendig (gemessen an Testdaten):
 
-  - Minimiurung von finanziellen Schaden und Verluste für Kunden und die Bank durch Betrug um 50% 
   - Hohe Genauigkeit (95%) bei der Klassifikation betrügerischer und nicht betrügerischer Transaktionen
   - Bearbeitungszeit von Transaktionsdaten unter 0.5 Sekunden pro Transaktion
   - Erreichung von mind. 80 Punkten bei der Benotung des Projektes
@@ -154,9 +154,10 @@ plot_bar(fraud, by = "type")
 fraud %>% count(isFlaggedFraud, isFraud) %>% kable()
 ```
 
-- Insgesamt 6.354.407 Transaktionen wurden nicht als verdächtig und als betrügerisch markiert. 
-- 8.197 Transaktionen wurden nicht als verdächtig markiert wurden, aber als betrügerisch klassifiziert wurden.
-- 16 Transaktionen wurden als verdächtig markiert und als betrügerisch klassifiziert. 
+- Insgesamt 6.354.407 Transaktionen wurden nicht als verdächtig und als betrügerisch markiert
+- 8.197 Transaktionen wurden nicht als verdächtig markiert wurden, aber als betrügerisch klassifiziert
+- 16 Transaktionen wurden als verdächtig markiert und als betrügerisch klassifiziert
+- 0 Transaktionen wurden nicht als verdächtig markiert aber als betrügerisch klassifiziert 
 
 ## Korrelation
 ```{r}
@@ -214,7 +215,7 @@ https://git-inf.technikum-wien.at/soe-r/soe-2023-b/fraudulent-transaction-classi
 ## Backlog
 
 Backlog: <p/>
-- Verwaltung in Gitlab verwaltet 
+- Verwaltung in Gitlab  
 - Erstellung vonInitial Backlog wurde mit "high-level" Tasks
 - Tasks werden nach Analyse des "high-level" Tasks heruntergebrochen und erstellt
 - Anpassung und Weiterentwicklung des Backlogs während der Projektlaufzeit <p/>
