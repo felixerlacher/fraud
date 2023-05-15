@@ -28,29 +28,45 @@ cl <- makeCluster(4)
 registerDoParallel(cl)
 ```
 ## Zielsetzung des Projekts
-- Ziel des Projekts ist es, ein Modell zu entwickeln, welches die Wahrscheinlichkeit einer betrügerischen Transaktion vorhersagt.<br>
+- Ziel des Projekts ist es, ein Modell zur Vorhersage von betrügerischen Kontotransaktionen zu entwickeln. 
+<br>
 
-- Die Daten stammen von Kaggle und beinhalten 6362620 Transaktionen, die in 30 Tagen simuliert wurden. ^[‘Fraudulent Transactions Prediction’. https://www.kaggle.com/datasets/vardhansiramdasu/fraudulent-transactions-prediction (accessed May 14, 2023)] 
-
+- Um unser Hauptziel zu erreichen, müssen wir uns auf verschiedene qualitative und quantitative Ziele konzentrieren. <br>
 
 ## qualitative Ziele
+
+Um unsere Hauptziel zu erreichen, sind folgende qualitative Ziele notwendig:
 
   - Verbesserung der Effektivität der Betrugsprävention und -erkennung
   - Steigerung der Kundenzufriedenheit und des Vertrauens in die Bank
   - Verbesserung des Rufs der Bank durch proaktive Betrugsprävention
-  - Vermeidung von finanziellen Verlusten für Kunden und die Bank durch Betrug
 
 ## quantitative Ziele
 
+Um unsere Hauptziel zu erreichen, sind folgende quantitative Ziele notwendig (gemessen an Testdaten):
+
+  - Minimiurung von finanziellen Schaden und Verluste für Kunden und die Bank durch Betrug um 50% 
+  - Hohe Genauigkeit (95%) bei der Klassifikation betrügerischer und nicht betrügerischer Transaktionen
+  - Bearbeitungszeit von Transaktionsdaten unter 0.5 Sekunden pro Transaktion
+  - Erreichung von mind. 80 Punkten bei der Benotung des Projektes
+
+  
 # Datengrundlage
+
+## Datenquelle
+
+- Die Daten stammen von Kaggle.<br>
+- In den Daten sind insgesamt  6362620 Transaktionen vorhanden. Diese wurden in 30 Tagen simuliert. ^[‘Fraudulent Transactions Prediction’. https://www.kaggle.com/datasets/vardhansiramdasu/fraudulent-transactions-prediction (accessed May 14, 2023)] 
 
 ## Features
 
-- step - maps a unit of time in the real world. In this case 1 step is 1 hour of time. Total steps 744 (30 days simulation).
+Folgende Features sind in den Daten vorhanden: <br>
 
-- type - CASH-IN, CASH-OUT, DEBIT, PAYMENT and TRANSFER.
+- *step* - maps a unit of time in the real world. In this case 1 step is 1 hour of time. Total steps 744 (30 days simulation).
 
-- amount - amount of the transaction in local currency.
+- *type* - CASH-IN, CASH-OUT, DEBIT, PAYMENT and TRANSFER.
+
+- *amount* - amount of the transaction in local currency.
 
 - nameOrig - customer who started the transaction
 
@@ -64,17 +80,18 @@ registerDoParallel(cl)
 
 - newbalanceDest - new balance recipient after the transaction. Note that there is not information for customers that start with M (Merchants).
 
-- isFraud - This is the transactions made by the fraudulent agents inside the simulation. In this specific dataset the fraudulent behavior of the agents aims to profit by taking control or customers accounts and try to empty the funds by transferring to another account and then cashing out of the system.
+- *isFraud* - This is the transactions made by the fraudulent agents inside the simulation. In this specific dataset the fraudulent behavior of the agents aims to profit by taking control or customers accounts and try to empty the funds by transferring to another account and then cashing out of the system.
 
-- isFlaggedFraud - The business model aims to control massive transfers from one account to another and flags illegal attempts. An illegal attempt in this dataset is an attempt to transfer more than 200.000 in a single transaction.
+- *isFlaggedFraud* - The business model aims to control massive transfers from one account to another and flags illegal attempts. An illegal attempt in this dataset is an attempt to transfer more than 200.000 in a single transaction.
 
 ::: aside
 ‘Fraudulent Transactions Prediction’. https://www.kaggle.com/datasets/vardhansiramdasu/fraudulent-transactions-prediction (accessed May 14, 2023)
 :::
 
 
+# Explorative Datenanalyse
 
-## Explorative Datenanalyse
+## Überblick in Zahlen
 
 ```{r}
 #| echo: true
@@ -84,104 +101,150 @@ fraud %>% glimpse()
 introduce(fraud) %>% t()
 ```
 
-## Überblick
+- insgesamt 6.362.620 Datensätze (Rows) mit 11 Features (Columns)
+- 11 Features sind 3 diskrete Merkmale und 8 Merkmale kontinuierliche Daten
+- keine Spalten und Zeilen mit fehlenden Werten
+- eingenommener Speicherplatz für den Datensatz eingenommen ca. 1,14 GB
+
+```{r}
+#| echo: true
+summary(fraud)
+head(fraud) 
+tail(fraud)
+```
+
+
+
+## Überblick als Grafik
+
 ```{r}
 plot_intro(fraud)
 ```
+Die folgende Grafik veranschaulicht die zuvorgebrachte Statistik.
+
+
 ## Verteilung ausgewählter Features
 ```{r}
 plot_bar(fraud)
 ```
+
+- ersten Grafik: Darstellung von 5 Arten (types) von Transaktionen geordnet nach ihrer Anzahl 
+- zweiten Grafik: Darstellung von der Anzahl "isFraud"an Fraud (1) und nicht Fraud (0) -Transaktionen  - wenige Transaktionen als Fraud markiert
+- dritten Graifk: Darstellung von der Anzahl an Transaktion, die als verdächtig markiert wurde (1) oder nicht (0) 
+
 ## Verteilung ausgewählter Features nach isFraud
 ```{r}
 plot_bar(fraud, by = "isFraud")
 ```
+
+- erste Grafik: Darstellung bei welchen 5 Transaktionsarten Transaktionen als "Fraud"/"Nicht-Fraud" markiert wurden 
+- zweite Grafik: Darstellung verdächtig/nicht verdächtig markierten Transaktionen als "Fraud"/"Nicht-Fraud" markiert wurden 
+
 ## Verteilung ausgewählter Features nach type
 ```{r}
 plot_bar(fraud, by = "type")
 ```
+
+- erste Grafik: Darstellung bei welchen 5 Transaktionsarten Transaktionen als "Fraud"/"Nicht-Fraud" markiert wurden 
+- zweite Grafik: Darstellung bei welchen 5 Transaktionsarten Transaktionen als verdächtig/nicht verdächtig markierten wurden
+
 ## Verteilung ausgewählter Features in Zahlen
 ```{r}
 #| echo: true
 fraud %>% count(isFlaggedFraud, isFraud) %>% kable()
-fraud %>% filter(isFlaggedFraud == 1 & isFraud == 0) %>% count()  %>% kable()
 ```
+
+- Insgesamt 6.354.407 Transaktionen wurden nicht als verdächtig und als betrügerisch markiert. 
+- 8.197 Transaktionen wurden nicht als verdächtig markiert wurden, aber als betrügerisch klassifiziert wurden.
+- 16 Transaktionen wurden als verdächtig markiert und als betrügerisch klassifiziert. 
 
 ## Korrelation
 ```{r}
 plot_correlation(fraud)
 ```
 
+- Wenig bis keine Korrelation von "isFraud" und "isFlaggedFraud" zu anderen Features.
+- Erwartete Korrelationen sichtbar wie hohe positive Korrelation zwischen "newbalanceOrig" und dem Transaktionstyp "CASH IN" (wenn Geld eingezahlt wird ("CASH IN"), steigt der Kontostand "newbalanceOrig")
+
+## Conslusio und weitere Schritte
+
+- Conslusio: viele Transaktionen, wenig Auswahl an als Fraud klassifizierte Daten - keine Korrelation zu anderen Features
+<p>
+
+Weitere Schritte:<p/>
+- Featureengineering <br/>
+- Anwendung von Klassifikationsalgorithmus wie: <br/>
+    - K-Nearest Neighbors <br>
+    - Support Vector Machines <br>
+    - Decision Tree <br>
+    - Random Forrest <br>
+
+
 # Projektorganisation
 
-## Aufgabenteilung
+## Projektorganisation und -verantwortung
 
-- Projektleiter:
-  Koordination des Projektablaufs
-  Verantwortung für das Erreichen der Projektziele
-  Kommunikation mit dem Dozenten
+- Projektleiter: Tomasz Wlodarski <br>
+    - Koordination des Projektablaufs <br>
+    - Verantwortung für das Erreichen der Projektziele <br>
+    - Kommunikation mit dem Lektor<br>
+    - Verwaltung des Backlogs<br>
+<p/>
 
-- Projektmitglied 1:
-  Datenaufbereitung und -bereinigung
-  Durchführung von explorativen Datenanalysen
-  Feature Engineering
+- Projektmitglied 1: Felix Erlacher<br>
+    - Bearbeitung der Tasks im Backlog<br>
+<p/>
+- Projektmitglied 2: Merve Taskaya<br>
+    - Bearbeitung der Tasks im Backlog<br>
 
-- Projektmitglied 2:
-    Entwicklung und Training des Modells
-    Evaluation des Modells und Analyse der Performance
-    Optimierung des Modells
+## Zusammenarbeit im Projekt
 
-- Projektmitglied 3:
-    Dokumentation der Arbeitsschritte und Ergebnisse
-    Erstellung der Abschlusspräsentation
-    Beantwortung von Fragen des Dozenten
+- Agile Projektumsetzung mittels Kanban Board
+- Pull-Prinzip
+- Verantwortung der Bearbeitung des Backlogs ist im Team
+- Mind. 1x wöchentliches Stand-up
+- Verwendung von Gitlab für Projektmanagementätigkeiten
+- Verwendung von Github für Code-Sharing
 
-# Plan für die Ausarbeitung des Projekts (Workflow), Backlog
+# Projektplan
+
+Link zu unserem Repository: <br>
+https://git-inf.technikum-wien.at/soe-r/soe-2023-b/fraudulent-transaction-classification/fraud/-/milestones 
 
 ## Backlog
-:::: {.columns}
 
-::: {.column width="50%"}
-<strong>Aufgabe</strong><br>
-Datenaufbereitung und -bereinigung<br>
-Explorative Datenanalyse <br>
-Feature Engineering<br>
-Modellentwicklung und Training<br>
-Modellbewertung und Performance-Analyse<br>
-Modelloptimierung<br>
-Dokumentation der Arbeitsschritte und Ergebnisse<br>
-Erstellung der Abschlusspräsentation
-:::
+Backlog: <p/>
+- Verwaltung in Gitlab verwaltet 
+- Erstellung vonInitial Backlog wurde mit "high-level" Tasks
+- Tasks werden nach Analyse des "high-level" Tasks heruntergebrochen und erstellt
+- Anpassung und Weiterentwicklung des Backlogs während der Projektlaufzeit <p/>
 
-::: {.column width="30%"}
-<strong>Verantwortlicher</strong><br>
-[Name 1]<br>
-[Name 1]<br>
-[Name 1]<br>
-[Name 1]<br>
-[Name 1]<br>
-[Name 1]<br>
-[Name 1]<br>
-[Name 1]
-:::
+![Backlog](img/Backlog.png)
 
-::: {.column width="20%"}
-<strong>Fälligkeitsdatum</strong><br>
-16.05.2023<br>
-16.05.2023<br>
-16.05.2023<br>
-16.05.2023<br>
-16.05.2023<br>
-16.05.2023<br>
-16.05.2023<br>
-16.05.2023
-:::
+## Kanban Board
 
-::::
+- Darstellung der Tasks im Kanban Board
+- Aktualisierung während der Projektlaufzeit<p/>
+
+![Board](img/Board.png)
+
+## Meilensteinplan
+
+- Erstellung von Meilensteinplan 
+- Verlinkung der Tasks zu den jeweiligen Meilensteinen
+- Darstellung der Meilensteine in Gitlab <p/>
+
+![Meilensteinplan](img/Meilensteine.png)
+
+## Deliverables
+- Dokumentation der Deliverarbles in den jeweiligen Meilensteinen <p/>
+
+![Deliverables](img/Deliverables.png)
+
 
 # Beantwortung von Fragen
 
 ```{r}
 #stop cluster
-stopCluster(cl)
+#stopCluster(cl)
 ```
