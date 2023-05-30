@@ -1,0 +1,204 @@
+---
+title: "Fraudulent Transactions Prediction"
+subtitle: "Solution Engineering - R"
+author: "Felix Erlacher, Merve Taskaya, Tomasz Wlodarski"
+embed-resources: true
+date: today
+date-format: long
+format:
+  revealjs: 
+    theme: dark
+    smaller: true
+    scrollable: true
+    center: false
+    cache: true
+---
+# Einleitung
+```{r load_libraries, message=FALSE, warning=FALSE}
+rm(list=ls())
+
+library(tidyverse)
+library(DataExplorer)
+library(patchwork)
+library(knitr)
+library(dplyr)
+library(readr)
+library(smotefamily)
+library(caret)
+library(fastDummies)
+library(corrplot)
+library(e1071)
+
+library(doParallel)
+cl <- makeCluster(8)
+registerDoParallel(cl)
+```
+## Reminder
+- Ziel des Projekts ist es, ein Modell zur Vorhersage von betrügerischen Kontotransaktionen zu entwickeln. 
+
+## Datengrundlage
+- Die Daten stammen von Kaggle.<br>
+- In den Daten sind insgesamt  6.362.620 Transaktionen, welche über 30 Tage simuliert wurden.
+^[‘Fraudulent Transactions Prediction’. https://www.kaggle.com/datasets/vardhansiramdasu/fraudulent-transactions-prediction (accessed May 14, 2023)] 
+
+## Features
+
+Folgende Features sind in den Daten vorhanden: <br>
+
+- *step* - maps a unit of time in the real world. In this case 1 step is 1 hour of time. Total steps 744 (30 days simulation).
+
+- *type* - CASH-IN, CASH-OUT, DEBIT, PAYMENT and TRANSFER.
+
+- *amount* - amount of the transaction in local currency.
+
+- *nameOrig* - customer who started the transaction
+
+- *oldbalanceOrg* - initial balance before the transaction
+
+- *newbalanceOrig* - new balance after the transaction
+
+- *nameDest* - customer who is the recipient of the transaction
+
+- *oldbalanceDest* - initial balance recipient before the transaction. Note that there is not information for customers that start with M (Merchants).
+
+- *newbalanceDest* - new balance recipient after the transaction. Note that there is not information for customers that start with M (Merchants).
+
+- *isFraud* - This is the transactions made by the fraudulent agents inside the simulation. In this specific dataset the fraudulent behavior of the agents aims to profit by taking control or customers accounts and try to empty the funds by transferring to another account and then cashing out of the system.
+
+- *isFlaggedFraud* - The business model aims to control massive transfers from one account to another and flags illegal attempts. An illegal attempt in this dataset is an attempt to transfer more than 200.000 in a single transaction.
+
+::: aside
+‘Fraudulent Transactions Prediction’. https://www.kaggle.com/datasets/vardhansiramdasu/fraudulent-transactions-prediction (accessed May 14, 2023)
+:::
+
+# EDA und Feature Engineering
+
+Eine detaillierte EDA wurde bereits in der letzten Präsentation gezeigt, heute liegt der Fokus auf Feature Engineering und dem Beheben von Problemen, welche die Modellerstellung erschweren würden.
+
+## Einlesen der Daten
+```{r}
+#| echo: true
+fraud <- read_csv('Fraud.csv',show_col_types = FALSE)
+fraud <- fraud[,-ncol(fraud)]             #delete isFlaggedFraud
+fraud$isFraud <- as.factor(fraud$isFraud) #isFraud into factor
+fraud$type <- as.factor(fraud$type)       #type into factor
+head(fraud) %>% kable()
+```
+
+Daten sind seht starkt ungleichmäßig verteilt - SMOTE und Downsampling
+```{r}
+#| echo: true
+summary(fraud$isFraud) %>% kable()
+round(prop.table(table(fraud$isFraud)) * 100,2) %>% kable()
+```
+
+## Korrelationen
+Sehr Starke Korelation zwischen newbalanceOrig und oldbalanceOrig sowie newbalanceDest und oldbalanceDest  
+
+```{r}
+plot_correlation(fraud)
+```
+
+## Welche Features löschen?
+oldbalanceDest und oldbalanceOrg werden gelöscht
+```{r}
+fraud2 <-fraud %>% filter(isFraud==1)
+fraud2 %>% count(oldbalanceDest )%>%  head(3) %>% kable()
+fraud2 %>% count(newbalanceDest )%>%  head(3) %>% kable()
+fraud2 %>% count(oldbalanceOrg  )%>%  head(3) %>% kable()
+fraud2 %>% count(newbalanceOrig )%>%  head(3) %>% kable()
+```  
+
+## Skalen der numerischen Werte und kategoriale Features
+Verschiedene Skalenniveaus - normalisieren/standardisieren
+```{r}
+summary(fraud) %>% kable()
+```
+3 kategorische Features - nameOrig, nameDest werden entfernt, type one hot encoded
+
+## Feature Engineering
+- Auswahl entsprechender Features  
+- Standardisierung der numerischen Werte
+- One Hot Encoding type
+```{r}
+#| echo: true
+fraud.finito <- fraud %>% select(step,type,amount,newbalanceOrig,newbalanceDest,isFraud)
+fraud.finito[sapply(fraud.finito, is.numeric)] <- lapply(fraud.finito[sapply(fraud.finito, is.numeric)], scale)
+fraud.finito <- dummy_cols(fraud.finito, select_columns = 'type', remove_selected_columns = TRUE)
+head(fraud.finito,5) %>% kable()
+```
+## Smote and Downsampling
+```{r}
+#| echo: true
+fraud.finito.sm <- SMOTE(fraud.finito[,-5], fraud.finito$isFraud, K=1,dup_size = 3)
+fraud.finito.sm <- fraud.finito.sm$data
+fraud.finito.sm$class <- as.factor(fraud.finito.sm$class)
+summary(fraud.finito.sm$class) %>% kable()
+```
+
+```{r}
+#| echo: true
+features <- fraud.finito.sm[, names(fraud.finito.sm) != "class"]
+target   <- fraud.finito.sm$class
+fraud.finito.sm.ds <- downSample(x = features, y = target)
+summary(fraud.finito.sm.ds) %>% kable()
+```
+
+## Data
+```{r}
+head(fraud.finito.sm.ds,10) %>% kable()
+```
+
+# Erste Modelle
+Auf Basis der Daten wurden erste einfache Modelle trainiert. - KNN und SVM
+
+## Erstellen von Training- und Test-Set
+```{r}
+#| echo: true
+set.seed(12345)
+intrain <- createDataPartition(y = fraud.finito.sm.ds$Class, p= 0.8, list = FALSE)
+training <- fraud.finito.sm.ds[intrain,]
+testing <-  fraud.finito.sm.ds[-intrain,]
+```
+
+## KNN
+```{r}
+acc=1
+for (i in 1:20){
+acc[i]<-  postResample(predict(knn3(Class ~ ., data = training,k=i),
+                                   testing, type = "class"),testing$Class)[1]}
+plot(acc, type="b", xlab="K- Value",ylab="Accuracy",main='Elbow Plot')
+```
+
+## Modeltraining
+```{r}
+#| echo: true
+model_knn = knn3(Class ~ ., data = training,k=2)
+pred_knn = predict(model_knn, testing, type = "class")
+cfknn <-confusionMatrix(pred_knn, testing$Class)
+cfknn
+```
+
+## Confusion Matrix
+```{r}
+fourfoldplot(as.table(cfknn),color=c("red","green"),main = "Confusion Matrix - KNN")
+```
+
+## SVM
+```{r}
+#| echo: true
+svm_model <- svm(Class ~ ., data = training, kernel = "radial")
+pred_svm <- predict(svm_model, newdata = testing)
+cfsvm <- confusionMatrix(pred_svm, testing$Class)
+cfsvm
+```
+
+## Confusion Matrix
+```{r}
+fourfoldplot(as.table(cfsvm),color=c("red","green"),main = "Confusion Matrix - SVM")
+```
+
+# Erledigte Projektaufgaben - Kanban-Board
+
+
+# Fragen
